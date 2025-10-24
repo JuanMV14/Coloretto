@@ -11,11 +11,11 @@
 
 // Aquí guardo todo lo que necesito para el juego
 typedef struct {
-    Player **players;             // Los 3 jugadores
-    int num_players;              // Cantidad de jugadores (siempre 3)
+    Player **players;             // Los jugadores (entre 3 y 5)
+    int num_players;              // Cantidad de jugadores (de 3 a 5)
     Deck *main_deck;              // El mazo de donde sacamos cartas
-    Pile **piles;                 // Las 3 pilas donde van las cartas
-    int num_piles;                // Cantidad de pilas (siempre 3)
+    Pile **piles;                 // Las pilas donde van las cartas (igual a num_players)
+    int num_piles;                // Cantidad de pilas (de 3 a 5, según jugadores)
     int current_player_idx;       // Quién está jugando ahora
     int current_round;            // En qué ronda vamos
     bool last_round_triggered;    // Si ya salió la carta de última ronda
