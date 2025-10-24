@@ -9,159 +9,107 @@
 // ESTRUCTURA PRINCIPAL DEL JUEGO
 // ============================================
 
-/**
- * Estructura que contiene todo el estado del juego
- */
+// Aquí guardo todo lo que necesito para el juego
 typedef struct {
-    Player **players;             // Array de 3 jugadores
-    int num_players;              // Siempre 3
-    Deck *main_deck;              // Baraja principal
-    Pile **piles;                 // Array de 3 pilas
-    int num_piles;                // Siempre 3
-    int current_player_idx;       // Índice del jugador actual
-    int current_round;            // Número de ronda actual
-    bool last_round_triggered;    // true cuando aparece carta "Última Ronda"
-    bool game_over;               // true cuando el juego termina
-    int players_passed_count;     // Contador de jugadores que pasaron
+    Player **players;             // Los 3 jugadores
+    int num_players;              // Cantidad de jugadores (siempre 3)
+    Deck *main_deck;              // El mazo de donde sacamos cartas
+    Pile **piles;                 // Las 3 pilas donde van las cartas
+    int num_piles;                // Cantidad de pilas (siempre 3)
+    int current_player_idx;       // Quién está jugando ahora
+    int current_round;            // En qué ronda vamos
+    bool last_round_triggered;    // Si ya salió la carta de última ronda
+    bool game_over;               // Si el juego ya terminó
+    int players_passed_count;     // Cuántos jugadores ya pasaron su turno
 } Game;
 
 // ============================================
-// FUNCIONES DE INICIALIZACIÓN
+// FUNCIONES PARA EMPEZAR EL JUEGO
 // ============================================
 
-/**
- * Inicializa el juego completo
- * Crea jugadores, pilas y baraja
- */
+// Crea todo lo necesario para empezar: jugadores, pilas y el mazo
 Game* init_game(void);
 
-/**
- * Asigna un color inicial a cada jugador
- * Cada jugador recibe 1 carta de un color específico
- */
+// Le da un color inicial a cada jugador (una carta de cada color)
 void assign_initial_colors(Game* game);
 
-/**
- * Prepara el juego para comenzar
- * Baraja el mazo y resetea contadores
- */
+// Prepara todo para comenzar a jugar (mezcla el mazo y reinicia los contadores)
 void prepare_game(Game* game);
 
 // ============================================
-// FUNCIONES DEL CICLO DE JUEGO
+// FUNCIONES MIENTRAS JUGAMOS
 // ============================================
 
-/**
- * Verifica si el juego sigue en curso
- */
+// Revisa si el juego todavía no ha terminado
 bool game_is_running(Game* game);
 
-/**
- * Ejecuta el turno completo de un jugador
- */
+// Ejecuta todo lo que pasa en el turno de un jugador
 void player_turn(Game* game);
 
-/**
- * Maneja la acción de robar una carta y colocarla en una pila
- */
+// Cuando el jugador roba una carta y la pone en una pila
 bool handle_draw_card_action(Game* game, int pile_index);
 
-/**
- * Maneja la acción de tomar una pila completa
- */
+// Cuando el jugador decide tomar una pila completa
 bool handle_take_pile_action(Game* game, int pile_index);
 
-/**
- * Avanza al siguiente jugador
- */
+// Pasa el turno al siguiente jugador
 void next_player(Game* game);
 
-/**
- * Verifica si todos los jugadores han pasado
- */
+// Revisa si todos los jugadores ya pasaron
 bool all_players_passed(Game* game);
 
-/**
- * Resetea la ronda (limpia pilas y estados de jugadores)
- */
+// Reinicia la ronda (limpia las pilas y resetea a los jugadores)
 void reset_round(Game* game);
 
 // ============================================
-// FUNCIONES DE FINALIZACIÓN
+// FUNCIONES PARA TERMINAR EL JUEGO
 // ============================================
 
-/**
- * Calcula las puntuaciones finales y declara al ganador
- */
+// Calcula los puntos de todos y dice quién ganó
 void calculate_scores_and_declare_winner(Game* game);
 
-/**
- * Determina el ganador del juego
- */
+// Encuentra quién es el ganador
 Player* get_winner(Game* game);
 
-/**
- * Libera TODA la memoria del juego
- * Incluyendo jugadores, cartas, pilas y baraja
- */
+// Libera toda la memoria que usamos (jugadores, cartas, pilas, mazo)
 void cleanup(Game* game);
 
 // ============================================
-// FUNCIONES DE INTERFAZ/DISPLAY
+// FUNCIONES PARA MOSTRAR COSAS EN PANTALLA
 // ============================================
 
-/**
- * Muestra el menú de opciones del jugador
- */
+// Muestra las opciones que tiene el jugador
 void display_menu(void);
 
-/**
- * Muestra el estado actual del juego
- */
+// Muestra cómo va el juego (ronda, jugador actual, etc)
 void display_game_state(Game* game);
 
-/**
- * Muestra las pilas disponibles
- */
+// Muestra las pilas que hay disponibles
 void display_piles(Game* game);
 
-/**
- * Muestra un mensaje de bienvenida
- */
+// Muestra el mensaje de bienvenida cuando empieza el juego
 void display_welcome_message(void);
 
-/**
- * Muestra los resultados finales
- */
+// Muestra los resultados y el ganador al final
 void display_final_results(Game* game);
 
 // ============================================
-// FUNCIONES DE ENTRADA
+// FUNCIONES PARA LEER LO QUE ESCRIBE EL USUARIO
 // ============================================
 
-/**
- * Obtiene la elección del jugador del menú
- */
+// Lee qué opción eligió el jugador del menú
 int get_player_choice(void);
 
-/**
- * Obtiene el índice de la pila seleccionada
- */
+// Lee qué pila eligió el jugador
 int get_pile_selection(int max_index);
 
-/**
- * Espera a que el usuario presione Enter
- */
+// Espera a que el usuario presione Enter para continuar
 void wait_for_enter(void);
 
-/**
- * Limpia el buffer de entrada
- */
+// Limpia el buffer del teclado (por si quedó basura)
 void clear_input_buffer(void);
 
-/**
- * Imprime una línea separadora
- */
+// Imprime una línea para separar secciones
 void print_separator(void);
 
 #endif // GAME_LOGIC_H
