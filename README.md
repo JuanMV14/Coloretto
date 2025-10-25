@@ -16,13 +16,11 @@ Este proyecto es una implementacion digital del juego de mesa **Coloretto** para
 
 - Soporte para **3 a 5 jugadores** (dinamico)
 - Uso de **6 colores activos** (se remueve 1 de los 7 colores base)
-- **Cartas "+2"** (comodines que siempre suman 2 puntos)
 - Gestion dinamica de la **Baraja** y las **Pilas de Cartas**
 - Implementacion del marcador de **"Ultima Ronda"**
 - Calculo de puntuacion final segun las reglas oficiales de Coloretto
 - **Memoria dinamica (malloc)** para todas las estructuras principales
 - Sistema completo de turnos con opciones de jugador
-- **Sin camaleon comodin** (ni normal ni dorado) segun especificaciones
 
 ## Reglas del Juego
 
@@ -55,8 +53,6 @@ Acumular la mayor cantidad de puntos recolectando cartas de colores. **Solo los 
 - 2 cartas = -3 puntos
 - 3 cartas = -6 puntos
 - 4+ cartas = -10 puntos
-
-**Cartas +2** - Siempre +2 puntos (sin limite)
 
 ## Estructura del Proyecto
 
@@ -138,10 +134,9 @@ Toda la memoria se libera correctamente al final del programa usando `free()`.
 Este proyecto implementa una **version reducida** del juego original Coloretto segun las especificaciones del curso:
 
 1. Modalidad de juego para **3 a 5 jugadores** (cantidad variable)
-2. Se **omiten los camaleon comodines** (tanto el normal como el dorado)
-3. Uso obligatorio de **memoria dinamica** via malloc
-4. Proyecto documentado y versionado en **Git**
-5. Todos los integrantes demuestran aportes al proyecto mediante commits
+2. Uso obligatorio de **memoria dinamica** via malloc
+3. Proyecto documentado y versionado en **Git**
+4. Todos los integrantes demuestran aportes al proyecto mediante commits
 
 ## Autores
 
