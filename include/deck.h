@@ -19,6 +19,7 @@ typedef struct {
     Card **cards;
     int count;
     bool is_full;
+    bool is_taken;
 } Pile;
 
 Card* create_card(Color color, int value);

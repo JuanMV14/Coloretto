@@ -148,6 +148,7 @@ Pile* create_pile(void) {
     
     pile->count = 0;
     pile->is_full = false;
+    pile->is_taken = false;
     
     return pile;
 }
@@ -184,6 +185,7 @@ void clear_pile(Pile* pile) {
     
     pile->count = 0;
     pile->is_full = false;
+    pile->is_taken = false;
 }
 
 void free_pile(Pile* pile) {
@@ -201,7 +203,9 @@ void print_pile(Pile* pile, int pile_number) {
     
     printf("Pila %d [%d/%d]: ", pile_number, pile->count, MAX_PILE_SIZE);
     
-    if (pile->count == 0) {
+    if (pile->is_taken) {
+        printf("[TOMADA]");
+    } else if (pile->count == 0) {
         printf("Vacia");
     } else {
         for (int i = 0; i < pile->count; i++) {

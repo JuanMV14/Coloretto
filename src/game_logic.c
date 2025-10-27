@@ -161,6 +161,13 @@ void player_turn(Game* game) {
         printf("\nEn que pila deseas colocar la carta? (1-%d): ", game->num_piles);
         int pile_idx = get_pile_selection(game->num_piles) - 1;
         
+        // Verificar si la pila ya fue tomada
+        if (game->piles[pile_idx]->is_taken) {
+            printf("Esa pila ya fue tomada en esta ronda\n");
+            free_card(drawn);
+            return;
+        }
+        
         // Verificar si la pila esta llena
         if (pile_is_full(game->piles[pile_idx])) {
             printf("La pila esta llena\n");
@@ -255,6 +262,12 @@ bool handle_take_pile_action(Game* game, int pile_index) {
         return false;
     }
     
+    // Verificar que la pila no haya sido tomada ya
+    if (pile->is_taken) {
+        printf("Esa pila ya fue tomada en esta ronda\n");
+        return false;
+    }
+    
     // Transferir cartas
     for (int i = 0; i < pile->count; i++) {
         add_card_to_collection(current, pile->cards[i]);
@@ -262,8 +275,9 @@ bool handle_take_pile_action(Game* game, int pile_index) {
     
     printf("%s recibio %d carta(s)\n", current->name, pile->count);
     
-    // Limpiar la pila
-    clear_pile(pile);
+    // Marcar la pila como tomada (pero no limpiarla aun)
+    pile->is_taken = true;
+    pile->count = 0;  // Vaciar las cartas pero mantener el flag
     
     return true;
 }
