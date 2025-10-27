@@ -130,14 +130,50 @@ void player_turn(Game* game) {
     int choice = get_player_choice();
     
     if (choice == 1) {
-        // Robar carta y colocar en pila
+        // Robar carta del mazo
+        Card* drawn = draw_card(game->main_deck);
+        if (drawn == NULL) {
+            printf("\nNo hay mas cartas en la baraja\n");
+            return;
+        }
+        
+        printf("\nCarta robada: %s\n", color_to_string(drawn->color));
+        
+        // Verificar si es "Ultima Ronda"
+        if (drawn->color == COLOR_LAST_ROUND) {
+            printf("\n");
+            printf("=======================================\n");
+            printf("   ULTIMA RONDA ACTIVADA!\n");
+            printf("=======================================\n");
+            game->last_round_triggered = true;
+            free_card(drawn);
+            
+            // Robar otra carta
+            drawn = draw_card(game->main_deck);
+            if (drawn == NULL) {
+                printf("No hay mas cartas en la baraja\n");
+                return;
+            }
+            printf("Nueva carta: %s\n", color_to_string(drawn->color));
+        }
+        
+        // Ahora preguntar donde colocarla
         printf("\nEn que pila deseas colocar la carta? (1-%d): ", game->num_piles);
         int pile_idx = get_pile_selection(game->num_piles) - 1;
         
-        if (handle_draw_card_action(game, pile_idx)) {
+        // Verificar si la pila esta llena
+        if (pile_is_full(game->piles[pile_idx])) {
+            printf("La pila esta llena\n");
+            free_card(drawn);
+            return;
+        }
+        
+        // Colocar la carta
+        if (add_card_to_pile(game->piles[pile_idx], drawn)) {
             printf("Carta colocada en la pila %d\n", pile_idx + 1);
         } else {
             printf("No se pudo colocar la carta\n");
+            free_card(drawn);
         }
         
     } else if (choice == 2) {
