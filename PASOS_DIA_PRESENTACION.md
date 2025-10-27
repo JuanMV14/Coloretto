@@ -1,57 +1,52 @@
-# Pasos para el Dia de la Presentacion
+# Pasos para el Dia de la Presentacion (WINDOWS)
 
 ## Antes de Llegar al Laboratorio
 
 1. Verifica que tu repositorio este actualizado en GitHub:
    - URL: https://github.com/JuanMV14/Coloretto
 
+2. Lleva en USB como respaldo:
+   - La carpeta: C:\mingw64\bin\gcc.exe\mingw64\
+   - El ejecutable: coloretto.exe
+
 ## Al Llegar al Laboratorio
 
 ### Paso 1: Verificar que gcc este instalado
 
-Abre la terminal y escribe:
-```bash
+Abre PowerShell y escribe:
+```powershell
 gcc --version
 ```
 
 Si aparece la version de gcc, continua al Paso 2.
 
-Si NO aparece, pide ayuda al profesor o usa otra computadora.
+Si NO aparece, consulta INSTRUCCIONES_WINDOWS.md
 
 ### Paso 2: Clonar el repositorio
 
-```bash
-cd ~/Desktop
+```powershell
+cd Desktop
 git clone https://github.com/JuanMV14/Coloretto.git
 cd Coloretto
 ```
 
-### Paso 3: (Opcional) Ejecutar prueba de compilacion
+### Paso 3: Compilar el proyecto
 
-```bash
-chmod +x test_compilacion.sh
-./test_compilacion.sh
+**Windows NO tiene make**, compila manualmente:
+
+```powershell
+gcc -Wall -Wextra -Iinclude src/*.c -o coloretto.exe
 ```
 
-Este script verifica que todo este correcto antes de compilar.
+Si aparece un warning sobre "comparison", es normal.
 
-### Paso 4: Compilar el proyecto
+### Paso 4: Ejecutar el juego
 
-**Opcion A (Con make):**
-```bash
-make
+```powershell
+.\coloretto.exe
 ```
 
-**Opcion B (Manual, si make no funciona):**
-```bash
-gcc -Wall -Wextra -g -Iinclude src/deck.c src/player.c src/game_logic.c src/main.c -o coloretto
-```
-
-### Paso 5: Ejecutar el juego
-
-```bash
-./coloretto
-```
+O haz doble click en el archivo coloretto.exe
 
 ## Si Algo Sale Mal
 
