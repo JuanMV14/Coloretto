@@ -73,7 +73,6 @@ int count_cards_by_color(Player* player, Color color);
  * Implementa las reglas de Coloretto:
  * - Los 3 colores con más cartas dan puntos positivos
  * - Los demás colores dan puntos negativos
- * - Las cartas +2 siempre suman 2 puntos
  */
 void calculate_score(Player* player);
 

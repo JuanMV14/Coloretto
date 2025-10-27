@@ -12,7 +12,6 @@
 #define MAX_PILE_SIZE 3
 #define NUM_COLORS 7
 #define CARDS_PER_COLOR 9
-#define NUM_PLUS2_CARDS 3
 #define COLORS_IN_PLAY 6
 
 typedef enum {
@@ -23,7 +22,6 @@ typedef enum {
     COLOR_ORANGE,
     COLOR_BROWN,
     COLOR_GRAY,
-    COLOR_PLUS2,
     COLOR_LAST_ROUND
 } Color;
 
