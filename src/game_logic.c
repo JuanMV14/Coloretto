@@ -520,6 +520,7 @@ int get_player_choice(void) {
     
     while (choice != 1 && choice != 2) {
         printf("\nTu eleccion (1-2): ");
+        fflush(stdout);  // Asegurar que el prompt se muestre
         
         if (scanf("%d", &choice) != 1) {
             clear_input_buffer();
@@ -540,10 +541,13 @@ int get_player_choice(void) {
 int get_pile_selection(int max_index) {
     int selection = 0;
     
+    fflush(stdout);  // Asegurar que todo se muestre antes de leer
+    
     while (selection < 1 || selection > max_index) {
         if (scanf("%d", &selection) != 1) {
             clear_input_buffer();
             printf("Entrada invalida. Intenta de nuevo: ");
+            fflush(stdout);
             continue;
         }
         
@@ -551,6 +555,7 @@ int get_pile_selection(int max_index) {
         
         if (selection < 1 || selection > max_index) {
             printf("Seleccion invalida. Elige entre 1 y %d: ", max_index);
+            fflush(stdout);
         }
     }
     
