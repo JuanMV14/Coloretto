@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compilar Coloretto",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "-Wall",
+                "-Wextra",
+                "-g",
+                "-Iinclude",
+                "src/deck.c",
+                "src/player.c",
+                "src/game_logic.c",
+                "src/main.c",
+                "-o",
+                "coloretto.exe"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Compila todos los archivos del proyecto Coloretto"
+        }
+    ]
+}
+

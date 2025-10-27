@@ -1,0 +1,29 @@
+# Ejecutables
+*.exe
+*.out
+coloretto
+
+# Archivos objeto
+*.o
+*.obj
+obj/
+
+# Archivos de Visual Studio (específicos de Windows)
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+.vs/
+bin/
+
+# Archivos de compilación
+*.a
+*.so
+*.dylib
+
+# Archivos temporales
+*.swp
+*.swo
+*~
+.DS_Store
+
