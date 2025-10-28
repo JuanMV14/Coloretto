@@ -157,30 +157,31 @@ void player_turn(Game* game) {
             printf("Nueva carta: %s\n", color_to_string(drawn->color));
         }
         
-        // Ahora preguntar donde colocarla
-        printf("\nEn que pila deseas colocar la carta? (1-%d): ", game->num_piles);
-        int pile_idx = get_pile_selection(game->num_piles) - 1;
-        
-        // Verificar si la pila ya fue tomada
-        if (game->piles[pile_idx]->is_taken) {
-            printf("Esa pila ya fue tomada en esta ronda\n");
-            free_card(drawn);
-            return;
-        }
-        
-        // Verificar si la pila esta llena
-        if (pile_is_full(game->piles[pile_idx])) {
-            printf("La pila esta llena\n");
-            free_card(drawn);
-            return;
-        }
-        
-        // Colocar la carta
-        if (add_card_to_pile(game->piles[pile_idx], drawn)) {
-            printf("Carta colocada en la pila %d\n", pile_idx + 1);
-        } else {
-            printf("No se pudo colocar la carta\n");
-            free_card(drawn);
+        // Ahora preguntar donde colocarla (con validación en bucle)
+        bool card_placed = false;
+        while (!card_placed) {
+            printf("\nEn que pila deseas colocar la carta? (1-%d): ", game->num_piles);
+            int pile_idx = get_pile_selection(game->num_piles) - 1;
+            
+            // Verificar si la pila ya fue tomada
+            if (game->piles[pile_idx]->is_taken) {
+                printf("Esa pila ya fue tomada en esta ronda. Elige otra pila.\n");
+                continue;
+            }
+            
+            // Verificar si la pila esta llena
+            if (pile_is_full(game->piles[pile_idx])) {
+                printf("La pila esta llena. Elige otra pila.\n");
+                continue;
+            }
+            
+            // Colocar la carta
+            if (add_card_to_pile(game->piles[pile_idx], drawn)) {
+                printf("Carta colocada en la pila %d\n", pile_idx + 1);
+                card_placed = true;
+            } else {
+                printf("No se pudo colocar la carta. Intenta otra pila.\n");
+            }
         }
         
     } else if (choice == 2) {

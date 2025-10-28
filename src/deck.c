@@ -48,11 +48,11 @@ Deck* create_full_deck(void) {
     deck->top_index = 0;
     
     srand(time(NULL));
-    Color removed_color = rand() % NUM_COLORS;
+    Color removed_color = (Color)(rand() % NUM_COLORS);
     
     printf("Color removido para esta partida: %s\n", color_to_string(removed_color));
     
-    for (int color = 0; color < NUM_COLORS; color++) {
+    for (Color color = 0; color < NUM_COLORS; color++) {
         if (color == removed_color) continue;
         if (color == COLOR_LAST_ROUND) continue;
         
