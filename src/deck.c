@@ -121,7 +121,10 @@ bool deck_is_empty(Deck* deck) {
 void free_deck(Deck* deck) {
     if (deck == NULL) return;
     
-    for (int i = 0; i < deck->count; i++) {
+    // Solo liberar las cartas que NO fueron robadas
+    // Las cartas robadas (desde 0 hasta top_index-1) ahora pertenecen a otros
+    // Solo liberamos las que quedaron en el mazo (desde top_index hasta count-1)
+    for (int i = deck->top_index; i < deck->count; i++) {
         free_card(deck->cards[i]);
     }
     

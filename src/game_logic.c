@@ -41,10 +41,12 @@ Game* init_game(void) {
     char name_buffer[50];
     for (int i = 0; i < num_players; i++) {
         printf("Nombre del jugador %d: ", i + 1);
-        if (scanf("%49s", name_buffer) == 1) {
+        while (scanf("%49s", name_buffer) != 1) {
             clear_input_buffer();
-            game->players[i] = create_player(name_buffer, i);
+            printf("Entrada invalida. Intenta de nuevo: ");
         }
+        clear_input_buffer();
+        game->players[i] = create_player(name_buffer, i);
     }
     
     // Crear array de pilas
@@ -108,13 +110,32 @@ bool game_is_running(Game* game) {
     return true;
 }
 
+bool has_available_pile(Game* game) {
+    if (game == NULL) return false;
+    
+    // Verificar si hay al menos una pila disponible (no llena y no tomada)
+    for (int i = 0; i < game->num_piles; i++) {
+        if (!game->piles[i]->is_taken && !pile_is_full(game->piles[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void player_turn(Game* game) {
     if (game == NULL) return;
     
     Player* current = game->players[game->current_player_idx];
     
-    // Si el jugador ya pasó, saltar
+    // Si el jugador ya pasó, verificar si todos pasaron antes de saltar
     if (current->has_passed) {
+        // Verificar si todos pasaron
+        if (all_players_passed(game)) {
+            printf("\nTodos los jugadores han pasado. Nueva ronda.\n");
+            reset_round(game);
+            wait_for_enter();
+            return;  // Volver al bucle principal para el siguiente turno
+        }
         next_player(game);
         return;
     }
@@ -130,6 +151,13 @@ void player_turn(Game* game) {
     int choice = get_player_choice();
     
     if (choice == 1) {
+        // Verificar si hay pilas disponibles ANTES de robar
+        if (!has_available_pile(game)) {
+            printf("\n¡No hay pilas disponibles! Todas estan llenas o tomadas.\n");
+            printf("Debes tomar una pila.\n");
+            return;
+        }
+        
         // Robar carta del mazo
         Card* drawn = draw_card(game->main_deck);
         if (drawn == NULL) {
@@ -305,8 +333,14 @@ bool all_players_passed(Game* game) {
 void reset_round(Game* game) {
     if (game == NULL) return;
     
-    // Limpiar todas las pilas
+    // Limpiar todas las pilas (liberando cartas no tomadas)
     for (int i = 0; i < game->num_piles; i++) {
+        // Si la pila no fue tomada, liberar las cartas que tenga
+        if (game->piles[i] != NULL && !game->piles[i]->is_taken) {
+            for (int j = 0; j < game->piles[i]->count; j++) {
+                free_card(game->piles[i]->cards[j]);
+            }
+        }
         clear_pile(game->piles[i]);
     }
     
@@ -379,12 +413,24 @@ void cleanup(Game* game) {
     
     printf("\nLiberando memoria...\n");
     
-    // Liberar baraja (y todas las cartas)
+    // Primero: liberar cartas que quedaron en las pilas (no tomadas)
+    if (game->piles != NULL) {
+        for (int i = 0; i < game->num_piles; i++) {
+            if (game->piles[i] != NULL && !game->piles[i]->is_taken) {
+                // Liberar cartas individuales que quedaron en la pila
+                for (int j = 0; j < game->piles[i]->count; j++) {
+                    free_card(game->piles[i]->cards[j]);
+                }
+            }
+        }
+    }
+    
+    // Segundo: liberar baraja (solo cartas no robadas)
     if (game->main_deck != NULL) {
         free_deck(game->main_deck);
     }
     
-    // Liberar pilas
+    // Tercero: liberar estructuras de pilas
     if (game->piles != NULL) {
         for (int i = 0; i < game->num_piles; i++) {
             free_pile(game->piles[i]);
@@ -392,7 +438,7 @@ void cleanup(Game* game) {
         SAFE_FREE(game->piles);
     }
     
-    // Liberar jugadores
+    // Cuarto: liberar jugadores (con sus cartas recolectadas)
     if (game->players != NULL) {
         for (int i = 0; i < game->num_players; i++) {
             free_player(game->players[i]);
@@ -400,7 +446,7 @@ void cleanup(Game* game) {
         SAFE_FREE(game->players);
     }
     
-    // Liberar estructura del juego
+    // Quinto: liberar estructura del juego
     SAFE_FREE(game);
     
     printf("Memoria liberada exitosamente\n");
