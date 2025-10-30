@@ -231,7 +231,7 @@ void player_turn(Game* game) {
     if (all_players_passed(game)) {
         printf("\nTodos los jugadores han pasado. Nueva ronda.\n");
         reset_round(game);
-        wait_for_enter();
+        // No llamar wait_for_enter() aquí porque se llama al final
     }
     
     next_player(game);
