@@ -2,227 +2,121 @@
 
 const char* color_to_string(Color color) {
     switch(color) {
-        case COLOR_RED:         return "Rojo";
-        case COLOR_BLUE:        return "Azul";
-        case COLOR_GREEN:       return "Verde";
-        case COLOR_YELLOW:      return "Amarillo";
-        case COLOR_ORANGE:      return "Naranja";
-        case COLOR_BROWN:       return "Marron";
-        case COLOR_GRAY:        return "Gris";
-        case COLOR_LAST_ROUND:  return "Ultima Ronda";
-        default:                return "Desconocido";
+        case Color::RED:         return "Rojo";
+        case Color::BLUE:        return "Azul";
+        case Color::GREEN:       return "Verde";
+        case Color::YELLOW:      return "Amarillo";
+        case Color::ORANGE:      return "Naranja";
+        case Color::BROWN:       return "Marron";
+        case Color::GRAY:        return "Gris";
+        case Color::LAST_ROUND:  return "Ultima Ronda";
+        default:                 return "Desconocido";
     }
 }
 
-Card* create_card(Color color, int value) {
-    Card* card = (Card*)malloc(sizeof(Card));
-    CHECK_NULL(card, "No se pudo crear la carta");
-    
-    card->color = color;
-    card->value = value;
-    
-    return card;
+void print_card(const Card &card) {
+    std::printf("[%s]", color_to_string(card.getColor()));
 }
 
-void free_card(Card* card) {
-    SAFE_FREE(card);
-}
-
-void print_card(Card* card) {
-    if (card == NULL) {
-        printf("[Vacio]");
-        return;
+Deck::Deck() : cards(), topIndex(0) {
+    std::srand((unsigned)std::time(nullptr));
+    // Elegir un color aleatorio para remover (no incluye LAST_ROUND)
+    int removed = std::rand() % NUM_COLORS;
+    Color removedColor = static_cast<Color>(removed);
+    // Asegurar que no sea LAST_ROUND
+    if (removedColor == Color::LAST_ROUND) {
+        removedColor = Color::RED;
     }
-    printf("[%s]", color_to_string(card->color));
-}
+    std::printf("Color removido para esta partida: %s\n", color_to_string(removedColor));
 
-Deck* create_full_deck(void) {
-    Deck* deck = (Deck*)malloc(sizeof(Deck));
-    CHECK_NULL(deck, "No se pudo crear la baraja");
-    
-    deck->capacity = 70;
-    deck->cards = (Card**)malloc(sizeof(Card*) * deck->capacity);
-    CHECK_NULL(deck->cards, "No se pudo asignar memoria para las cartas");
-    
-    deck->count = 0;
-    deck->top_index = 0;
-    
-    srand(time(NULL));
-    Color removed_color = (Color)(rand() % NUM_COLORS);
-    
-    printf("Color removido para esta partida: %s\n", color_to_string(removed_color));
-    
+    // Generar cartas
     for (int c = 0; c < NUM_COLORS; c++) {
-        Color color = (Color)c;
-        if (color == removed_color) continue;
-        if (color == COLOR_LAST_ROUND) continue;
-        
+        Color color = static_cast<Color>(c);
+        if (color == removedColor) continue;
+        if (color == Color::LAST_ROUND) continue;
         for (int i = 0; i < CARDS_PER_COLOR; i++) {
-            deck->cards[deck->count++] = create_card(color, 1);
+            cards.emplace_back(color, 1);
         }
     }
-    
-    deck->cards[deck->count++] = create_card(COLOR_LAST_ROUND, 0);
-    
-    printf("Baraja creada: %d cartas totales\n", deck->count);
-    
-    return deck;
+    // Carta de última ronda
+    cards.emplace_back(Color::LAST_ROUND, 0);
+    std::printf("Baraja creada: %zu cartas totales\n", cards.size());
 }
 
-void shuffle_deck(Deck* deck) {
-    if (deck == NULL || deck->count == 0) return;
-    
-    for (int i = deck->count - 1; i > 0; i--) {
-        int j = rand() % (i + 1);
-        Card* temp = deck->cards[i];
-        deck->cards[i] = deck->cards[j];
-        deck->cards[j] = temp;
+void Deck::shuffle() {
+    if (cards.empty()) return;
+    for (std::size_t i = cards.size() - 1; i > 0; i--) {
+        std::size_t j = std::rand() % (i + 1);
+        std::swap(cards[i], cards[j]);
     }
-    
-    int last_round_idx = -1;
-    for (int i = 0; i < deck->count; i++) {
-        if (deck->cards[i]->color == COLOR_LAST_ROUND) {
-            last_round_idx = i;
+
+    int lastRoundIdx = -1;
+    for (std::size_t i = 0; i < cards.size(); i++) {
+        if (cards[i].getColor() == Color::LAST_ROUND) {
+            lastRoundIdx = static_cast<int>(i);
             break;
         }
     }
-    
-    if (last_round_idx != -1) {
-        int target_position = deck->count - 16;
-        if (target_position < 0) target_position = 0;
-        if (target_position >= deck->count) target_position = deck->count - 1;
-        
-        Card* temp = deck->cards[last_round_idx];
-        deck->cards[last_round_idx] = deck->cards[target_position];
-        deck->cards[target_position] = temp;
-        
-        printf("Carta Ultima Ronda colocada en posicion %d (desde arriba: %d desde abajo)\n", 
-               target_position, deck->count - target_position);
+    if (lastRoundIdx != -1) {
+        int target = static_cast<int>(cards.size()) - 16;
+        if (target < 0) target = 0;
+        if (target >= static_cast<int>(cards.size())) target = static_cast<int>(cards.size()) - 1;
+        std::swap(cards[lastRoundIdx], cards[target]);
+        std::printf("Carta Ultima Ronda colocada en posicion %d (desde arriba: %d desde abajo)\n", 
+                    target, static_cast<int>(cards.size()) - target);
     }
-    
-    printf("Baraja barajada exitosamente\n");
+    std::printf("Baraja barajada exitosamente\n");
 }
 
-Card* draw_card(Deck* deck) {
-    if (deck == NULL || deck_is_empty(deck)) {
-        return NULL;
-    }
-    
-    Card* drawn = deck->cards[deck->top_index];
-    deck->top_index++;
-    
-    return drawn;
+bool Deck::isEmpty() const {
+    return topIndex >= cards.size();
 }
 
-bool deck_is_empty(Deck* deck) {
-    if (deck == NULL) return true;
-    return deck->top_index >= deck->count;
-}
-
-void free_deck(Deck* deck) {
-    if (deck == NULL) return;
-    
-    // Solo liberar las cartas que NO fueron robadas
-    // Las cartas robadas (desde 0 hasta top_index-1) ahora pertenecen a otros
-    // Solo liberamos las que quedaron en el mazo (desde top_index hasta count-1)
-    for (int i = deck->top_index; i < deck->count; i++) {
-        free_card(deck->cards[i]);
-    }
-    
-    SAFE_FREE(deck->cards);
-    SAFE_FREE(deck);
-}
-
-void print_deck(Deck* deck) {
-    if (deck == NULL) {
-        printf("Baraja: NULL\n");
-        return;
-    }
-    
-    printf("Baraja: %d cartas (siguiente: %d)\n", 
-           deck->count - deck->top_index, deck->top_index);
-}
-
-Pile* create_pile(void) {
-    Pile* pile = (Pile*)malloc(sizeof(Pile));
-    CHECK_NULL(pile, "No se pudo crear la pila");
-    
-    pile->cards = (Card**)malloc(sizeof(Card*) * MAX_PILE_SIZE);
-    CHECK_NULL(pile->cards, "No se pudo asignar memoria para cartas de la pila");
-    
-    pile->count = 0;
-    pile->is_full = false;
-    pile->is_taken = false;
-    
-    return pile;
-}
-
-bool add_card_to_pile(Pile* pile, Card* card) {
-    if (pile == NULL || card == NULL) return false;
-    
-    if (pile->count >= MAX_PILE_SIZE) {
-        pile->is_full = true;
-        return false;
-    }
-    
-    pile->cards[pile->count++] = card;
-    
-    if (pile->count == MAX_PILE_SIZE) {
-        pile->is_full = true;
-    }
-    
+bool Deck::draw(Card &out) {
+    if (isEmpty()) return false;
+    out = cards[topIndex++];
     return true;
 }
 
-bool pile_is_full(Pile* pile) {
-    if (pile == NULL) return false;
-    return pile->is_full;
+void Deck::print() const {
+    std::printf("Baraja: %zu cartas (siguiente: %zu)\n", cards.size() - topIndex, topIndex);
 }
 
-bool pile_is_empty(Pile* pile) {
-    if (pile == NULL) return true;
-    return pile->count == 0;
+Pile::Pile() : cards(), count(0), full(false), taken(false) {
+    cards.reserve(MAX_PILE_SIZE);
 }
 
-void clear_pile(Pile* pile) {
-    if (pile == NULL) return;
-    
-    pile->count = 0;
-    pile->is_full = false;
-    pile->is_taken = false;
+bool Pile::add(const Card &card) {
+    if (count >= MAX_PILE_SIZE) { full = true; return false; }
+    cards.push_back(card);
+    count++;
+    if (count == MAX_PILE_SIZE) full = true;
+    return true;
 }
 
-void free_pile(Pile* pile) {
-    if (pile == NULL) return;
-    
-    SAFE_FREE(pile->cards);
-    SAFE_FREE(pile);
+bool Pile::isFull() const { return full; }
+bool Pile::isEmpty() const { return count == 0; }
+
+void Pile::clear() {
+    cards.clear();
+    count = 0;
+    full = false;
+    taken = false;
 }
 
-void print_pile(Pile* pile, int pile_number) {
-    if (pile == NULL) {
-        printf("Pila %d: NULL\n", pile_number);
-        return;
-    }
-    
-    printf("Pila %d [%d/%d]: ", pile_number, pile->count, MAX_PILE_SIZE);
-    
-    if (pile->is_taken) {
-        printf("[TOMADA]");
-    } else if (pile->count == 0) {
-        printf("Vacia");
+void Pile::print(int pileNumber) const {
+    std::printf("Pila %d [%d/%d]: ", pileNumber, count, MAX_PILE_SIZE);
+    if (taken) {
+        std::printf("[TOMADA]");
+    } else if (count == 0) {
+        std::printf("Vacia");
     } else {
-        for (int i = 0; i < pile->count; i++) {
-            print_card(pile->cards[i]);
-            if (i < pile->count - 1) printf(" ");
+        for (int i = 0; i < count; i++) {
+            print_card(cards[static_cast<std::size_t>(i)]);
+            if (i < count - 1) std::printf(" ");
         }
     }
-    
-    if (pile->is_full) {
-        printf(" [LLENA]");
-    }
-    
-    printf("\n");
+    if (full) std::printf(" [LLENA]");
+    std::printf("\n");
 }
-
 

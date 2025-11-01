@@ -1,11 +1,20 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+// Cabeceras C++
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <string>
+#include <vector>
+#include <optional>
+#include <memory>
+#include <algorithm>
+#include <iostream>
+#include <limits>
 
+// Constantes de juego (mantener compatibilidad)
 #define NUM_PLAYERS 3
 #define NUM_PILES 3
 #define MAX_PILE_SIZE 3
@@ -13,21 +22,23 @@
 #define CARDS_PER_COLOR 9
 #define COLORS_IN_PLAY 6
 
-typedef enum {
-    COLOR_RED = 0,
-    COLOR_BLUE,
-    COLOR_GREEN,
-    COLOR_YELLOW,
-    COLOR_ORANGE,
-    COLOR_BROWN,
-    COLOR_GRAY,
-    COLOR_LAST_ROUND
-} Color;
+// Enumeración de colores (C++)
+enum class Color {
+    RED = 0,
+    BLUE,
+    GREEN,
+    YELLOW,
+    ORANGE,
+    BROWN,
+    GRAY,
+    LAST_ROUND
+};
 
+// Utilidades de depuración (podrían no usarse con RAII, pero se conservan)
 #define CHECK_NULL(ptr, msg) \
     if ((ptr) == NULL) { \
-        fprintf(stderr, "Error: %s\n", msg); \
-        exit(EXIT_FAILURE); \
+        std::fprintf(stderr, "Error: %s\n", msg); \
+        std::exit(EXIT_FAILURE); \
     }
 
 #define SAFE_FREE(ptr) \
@@ -36,6 +47,7 @@ typedef enum {
         (ptr) = NULL; \
     }
 
+// Conversión de color a texto
 const char* color_to_string(Color color);
 
 #endif

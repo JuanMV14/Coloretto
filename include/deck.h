@@ -3,42 +3,61 @@
 
 #include "common.h"
 
-typedef struct {
+// ============================================
+// Clase Card
+// ============================================
+class Card {
+public:
+    Card(Color c = Color::RED, int v = 0) : color(c), value(v) {}
+    Color getColor() const { return color; }
+    int getValue() const { return value; }
+
+private:
     Color color;
     int value;
-} Card;
+};
 
-typedef struct {
-    Card **cards;
+void print_card(const Card &card);
+
+// ============================================
+// Clase Deck (RAII)
+// ============================================
+class Deck {
+public:
+    Deck();
+    void shuffle();
+    bool isEmpty() const;
+    // Devuelve true si robó, y deja la carta en out
+    bool draw(Card &out);
+    void print() const;
+    int remaining() const { return static_cast<int>(cards.size() - topIndex); }
+
+private:
+    std::vector<Card> cards;
+    std::size_t topIndex;
+};
+
+// ============================================
+// Clase Pile (RAII, contenedor temporal)
+// ============================================
+class Pile {
+public:
+    Pile();
+    bool add(const Card &card);
+    bool isFull() const;
+    bool isEmpty() const;
+    void clear();
+    void print(int pileNumber) const;
+    bool isTaken() const { return taken; }
+    void markTaken() { taken = true; count = 0; }
+    int size() const { return count; }
+    const std::vector<Card>& getCards() const { return cards; }
+
+private:
+    std::vector<Card> cards;
     int count;
-    int capacity;
-    int top_index;
-} Deck;
-
-typedef struct {
-    Card **cards;
-    int count;
-    bool is_full;
-    bool is_taken;
-} Pile;
-
-Card* create_card(Color color, int value);
-void free_card(Card* card);
-void print_card(Card* card);
-
-Deck* create_full_deck(void);
-void shuffle_deck(Deck* deck);
-Card* draw_card(Deck* deck);
-bool deck_is_empty(Deck* deck);
-void free_deck(Deck* deck);
-void print_deck(Deck* deck);
-
-Pile* create_pile(void);
-bool add_card_to_pile(Pile* pile, Card* card);
-bool pile_is_full(Pile* pile);
-bool pile_is_empty(Pile* pile);
-void clear_pile(Pile* pile);
-void free_pile(Pile* pile);
-void print_pile(Pile* pile, int pile_number);
+    bool full;
+    bool taken;
+};
 
 #endif
