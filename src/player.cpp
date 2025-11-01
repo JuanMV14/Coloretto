@@ -101,7 +101,7 @@ void calculate_score(Player* player) {
     // Contar cartas por color
     int color_counts[NUM_COLORS];
     for (int i = 0; i < NUM_COLORS; i++) {
-        color_counts[i] = count_cards_by_color(player, i);
+        color_counts[i] = count_cards_by_color(player, (Color)i);
     }
     
     // Encontrar los 3 colores con mas cartas
@@ -201,11 +201,11 @@ void print_player_collection(Player* player) {
         printf("  (sin cartas)\n");
     } else {
         // Contar cartas por color
-        for (int color = 0; color < NUM_COLORS; color++) {
-            int count = count_cards_by_color(player, color);
+    for (int color = 0; color < NUM_COLORS; color++) {
+        int count = count_cards_by_color(player, (Color)color);
             if (count > 0) {
                 printf("  %s: %d carta(s)\n", 
-                       color_to_string(color), count);
+                       color_to_string((Color)color), count);
             }
         }
     }
@@ -232,7 +232,7 @@ void print_score_breakdown(Player* player) {
     // Contar cartas por color
     int color_counts[NUM_COLORS];
     for (int i = 0; i < NUM_COLORS; i++) {
-        color_counts[i] = count_cards_by_color(player, i);
+        color_counts[i] = count_cards_by_color(player, (Color)i);
     }
     
     // Encontrar top 3
@@ -291,4 +291,5 @@ bool player_has_passed(Player* player) {
     if (player == NULL) return false;
     return player->has_passed;
 }
+
 

@@ -52,7 +52,8 @@ Deck* create_full_deck(void) {
     
     printf("Color removido para esta partida: %s\n", color_to_string(removed_color));
     
-    for (Color color = 0; color < NUM_COLORS; color++) {
+    for (int c = 0; c < NUM_COLORS; c++) {
+        Color color = (Color)c;
         if (color == removed_color) continue;
         if (color == COLOR_LAST_ROUND) continue;
         
@@ -223,3 +224,5 @@ void print_pile(Pile* pile, int pile_number) {
     
     printf("\n");
 }
+
+
