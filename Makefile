@@ -1,8 +1,8 @@
 # Makefile para compilar el juego Coloretto
 
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g -std=c99 -Iinclude
-LDFLAGS = 
+CXX = g++
+CXXFLAGS = -Wall -Wextra -Werror -g -std=c++17 -Iinclude
+LDFLAGS =
 
 # Directorios del proyecto
 SRC_DIR = src
@@ -10,8 +10,8 @@ INC_DIR = include
 OBJ_DIR = obj
 
 # Archivos fuente y objetos
-SOURCES = $(wildcard $(SRC_DIR)/*.c)
-OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TARGET = coloretto
 
 # Colores para que se vea mejor en la terminal
@@ -26,13 +26,13 @@ all: $(TARGET)
 # Enlazar todos los archivos objeto para crear el ejecutable
 $(TARGET): $(OBJECTS)
 	@echo "$(COLOR_GREEN)Enlazando $(TARGET)...$(COLOR_RESET)"
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 	@echo "$(COLOR_GREEN)Compilacion exitosa!$(COLOR_RESET)"
 
 # Compilar cada archivo .c a .o
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	@echo "$(COLOR_BLUE)Compilando $<...$(COLOR_RESET)"
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Crear la carpeta obj si no existe
 $(OBJ_DIR):
