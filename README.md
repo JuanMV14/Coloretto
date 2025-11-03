@@ -1,4 +1,4 @@
-# Coloretto - Implementacion en C
+# Coloretto - Implementacion en C++
 
 ## Descripcion
 
