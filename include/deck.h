@@ -20,29 +20,38 @@ private:
 void print_card(const Card &card);
 
 // ============================================
-// Clase Deck (RAII)
+// Clase Deck (con memoria dinámica explícita)
 // ============================================
 class Deck {
 public:
     Deck();
+    ~Deck();  // Destructor para liberar memoria
+    void initialize();  // Inicializa la baraja (crea cartas, elige color removido)
     void shuffle();
     bool isEmpty() const;
     // Devuelve true si robó, y deja la carta en out
     bool draw(Card &out);
     void print() const;
-    int remaining() const { return static_cast<int>(cards.size() - topIndex); }
+    int remaining() const { return static_cast<int>(capacity - topIndex); }
+    Color getRemovedColor() const { return removedColor; }
+    int getTotalCards() const { return static_cast<int>(capacity); }
 
 private:
-    std::vector<Card> cards;
-    std::size_t topIndex;
+    Card* cards;        // Array dinámico de cartas (malloc/new)
+    std::size_t capacity;  // Capacidad total del array
+    std::size_t topIndex;  // Índice de la siguiente carta a robar
+    Color removedColor;
+    
+    void resizeCards(std::size_t newCapacity);  // Redimensiona el array dinámicamente
 };
 
 // ============================================
-// Clase Pile (RAII, contenedor temporal)
+// Clase Pile (con memoria dinámica explícita)
 // ============================================
 class Pile {
 public:
     Pile();
+    ~Pile();  // Destructor para liberar memoria
     bool add(const Card &card);
     bool isFull() const;
     bool isEmpty() const;
@@ -51,11 +60,12 @@ public:
     bool isTaken() const { return taken; }
     void markTaken() { taken = true; count = 0; }
     int size() const { return count; }
-    const std::vector<Card>& getCards() const { return cards; }
+    const Card* getCards() const { return cards; }  // Retorna puntero al array
+    std::size_t getCardCount() const { return count; }
 
 private:
-    std::vector<Card> cards;
-    int count;
+    Card* cards;        // Array dinámico de cartas (malloc/new)
+    std::size_t count;  // Número actual de cartas
     bool full;
     bool taken;
 };

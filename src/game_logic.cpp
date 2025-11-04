@@ -1,56 +1,119 @@
 #include "../include/game_logic.h"
+#include <cstdlib>  // Para malloc, free
+#include <cstring>  // Para strlen, strcpy
 
 Game::Game()
-    : players(), deck(), piles(), currentPlayerIdx(0), currentRound(1),
-      lastRoundTriggered(false), gameOver(false), playersPassedCount(0) {
+    : players(nullptr), numPlayers(0), deck(), piles(nullptr), numPiles(0), 
+      currentPlayerIdx(0), currentRound(1), lastRoundTriggered(false), 
+      gameOver(false), playersPassedCount(0) {
     std::printf("\nCuantos jugadores van a jugar? (3-5): ");
-    int numPlayers = 0;
-    while (numPlayers < 3 || numPlayers > 5) {
-        if (!(std::cin >> numPlayers)) {
+    int nPlayers = 0;
+    while (nPlayers < 3 || nPlayers > 5) {
+        if (!(std::cin >> nPlayers)) {
             clearInputBuffer();
             std::printf("Entrada invalida. Intenta de nuevo (3-5): ");
             continue;
         }
         clearInputBuffer();
-        if (numPlayers < 3 || numPlayers > 5) {
+        if (nPlayers < 3 || nPlayers > 5) {
             std::printf("Numero invalido. Debe ser entre 3 y 5: ");
         }
     }
-    players.reserve(numPlayers);
-    piles.reserve(numPlayers);
+    
+    numPlayers = static_cast<std::size_t>(nPlayers);
+    numPiles = numPlayers;
+    
+    // Asignar memoria para jugadores usando malloc (luego usamos placement new)
+    players = static_cast<Player*>(std::malloc(numPlayers * sizeof(Player)));
+    if (players == nullptr) {
+        std::fprintf(stderr, "Error: No se pudo asignar memoria para jugadores\n");
+        std::exit(EXIT_FAILURE);
+    }
+    
+    // Asignar memoria para pilas usando malloc (luego usamos placement new)
+    piles = static_cast<Pile*>(std::malloc(numPiles * sizeof(Pile)));
+    if (piles == nullptr) {
+        std::fprintf(stderr, "Error: No se pudo asignar memoria para pilas\n");
+        std::exit(EXIT_FAILURE);
+    }
 
-    std::string name;
-    for (int i = 0; i < numPlayers; i++) {
-        std::printf("Nombre del jugador %d: ", i + 1);
-        if (!(std::cin >> name)) {
+    // Leer nombres de jugadores
+    char nameBuffer[256];  // Buffer temporal para leer nombres
+    for (std::size_t i = 0; i < numPlayers; i++) {
+        std::printf("Nombre del jugador %zu: ", i + 1);
+        if (!(std::cin >> nameBuffer)) {
             clearInputBuffer();
             i--;
             continue;
         }
         clearInputBuffer();
-        players.emplace_back(name, i);
+        
+        // Crear jugador usando placement new en el array
+        new (&players[i]) Player(nameBuffer, static_cast<int>(i));
     }
-    for (int i = 0; i < numPlayers; i++) {
-        piles.emplace_back();
+    
+    // Inicializar pilas con placement new
+    for (std::size_t i = 0; i < numPiles; i++) {
+        new (&piles[i]) Pile();
     }
-    std::printf("\nJuego inicializado para %d jugadores\n", numPlayers);
+    std::printf("\nJuego inicializado para %zu jugadores\n", numPlayers);
+}
+
+Game::~Game() {
+    // Llamar destructores explícitamente para jugadores
+    if (players != nullptr) {
+        for (std::size_t i = 0; i < numPlayers; i++) {
+            players[i].~Player();
+        }
+        std::free(players);  // Liberar memoria asignada con malloc
+        players = nullptr;
+    }
+    
+    // Llamar destructores explícitamente para pilas
+    if (piles != nullptr) {
+        for (std::size_t i = 0; i < numPiles; i++) {
+            piles[i].~Pile();
+        }
+        std::free(piles);  // Liberar memoria asignada con malloc
+        piles = nullptr;
+    }
 }
 
 void Game::assignInitialColors() {
-    std::printf("\nAsignando colores iniciales...\n");
-    for (std::size_t i = 0; i < players.size(); i++) {
+    std::printf("\n");
+    std::printf("=======================================\n");
+    std::printf("     DISTRIBUCION DE CARTAS INICIALES  \n");
+    std::printf("=======================================\n");
+    std::printf("  Cada jugador recibe una carta inicial\n");
+    std::printf("  al azar de la baraja:\n");
+    std::printf("\n");
+    for (std::size_t i = 0; i < numPlayers; i++) {
         Card initial;
         if (deck.draw(initial)) {
             players[i].addCard(initial);
-            std::printf("  %s recibe: %s\n", players[i].getName().c_str(), color_to_string(initial.getColor()));
+            std::printf("  - %s recibe: %s\n", players[i].getName(), color_to_string(initial.getColor()));
         }
     }
+    std::printf("=======================================\n");
 }
 
 void Game::prepare() {
     std::printf("\nPreparando el juego...\n");
+    // Inicializar la baraja (crear cartas y elegir color removido)
+    deck.initialize();
+    std::printf("\n");
+    std::printf("=======================================\n");
+    std::printf("     CONFIGURACION DE LA PARTIDA       \n");
+    std::printf("=======================================\n");
+    std::printf("  Para esta partida se ha removido\n");
+    std::printf("  aleatoriamente el color: %s\n", color_to_string(deck.getRemovedColor()));
+    std::printf("  (Este color no aparecera en la baraja)\n");
+    std::printf("\n");
+    std::printf("  Baraja creada: %d cartas totales\n", deck.getTotalCards());
+    std::printf("  Colores activos en juego: 6\n");
+    std::printf("=======================================\n");
     deck.shuffle();
-    std::printf("Juego listo para comenzar\n");
+    std::printf("\nJuego listo para comenzar\n");
     waitForEnter();
 }
 
@@ -61,8 +124,8 @@ bool Game::isRunning() {
 }
 
 bool Game::hasAvailablePile() const {
-    for (const auto &p : piles) {
-        if (!p.isTaken() && !p.isFull()) return true;
+    for (std::size_t i = 0; i < numPiles; i++) {
+        if (!piles[i].isTaken() && !piles[i].isFull()) return true;
     }
     return false;
 }
@@ -83,17 +146,44 @@ void Game::playerTurn() {
 
     displayGameState();
     std::printf("\n=======================================\n");
-    std::printf("   TURNO DE: %s\n", current.getName().c_str());
+    std::printf("   TURNO DE: %s\n", current.getName());
     std::printf("=======================================\n");
+    
+    // Verificar si hay pilas disponibles antes de mostrar el menú
+    bool canDrawCard = hasAvailablePile();
+    
+    if (!canDrawCard) {
+        std::printf("\n");
+        std::printf("=======================================\n");
+        std::printf("   NO HAY PILAS DISPONIBLES\n");
+        std::printf("=======================================\n");
+        std::printf("  Todas las pilas estan llenas o tomadas.\n");
+        std::printf("  No puedes robar mas cartas.\n");
+        std::printf("  Debes tomar una pila completa.\n");
+        std::printf("=======================================\n\n");
+        displayPiles();
+        std::printf("\nQue pila deseas tomar? (1-%zu): ", numPiles);
+        int pileIdx = getPileSelection(static_cast<int>(numPiles)) - 1;
+        if (handleTakePileAction(pileIdx)) {
+            std::printf("%s tomo la pila %d\n", current.getName(), pileIdx + 1);
+            current.markPassed();
+            playersPassedCount++;
+        } else {
+            std::printf("No se pudo tomar la pila\n");
+        }
+        if (allPlayersPassed()) {
+            std::printf("\nTodos los jugadores han pasado. Nueva ronda.\n");
+            resetRound();
+        }
+        nextPlayer();
+        waitForEnter();
+        return;
+    }
+    
     displayMenu();
     int choice = getPlayerChoice();
 
     if (choice == 1) {
-        if (!hasAvailablePile()) {
-            std::printf("\n¡No hay pilas disponibles! Todas estan llenas o tomadas.\n");
-            std::printf("Debes tomar una pila.\n");
-            return;
-        }
         Card drawn;
         if (!deck.draw(drawn)) {
             std::printf("\nNo hay mas cartas en la baraja\n");
@@ -111,8 +201,8 @@ void Game::playerTurn() {
         }
         bool placed = false;
         while (!placed) {
-            std::printf("\nEn que pila deseas colocar la carta? (1-%d): ", (int)piles.size());
-            int pileIdx = getPileSelection((int)piles.size()) - 1;
+            std::printf("\nEn que pila deseas colocar la carta? (1-%zu): ", numPiles);
+            int pileIdx = getPileSelection(static_cast<int>(numPiles)) - 1;
             if (piles[static_cast<std::size_t>(pileIdx)].isTaken()) {
                 std::printf("Esa pila ya fue tomada en esta ronda. Elige otra pila.\n");
                 continue;
@@ -130,10 +220,10 @@ void Game::playerTurn() {
         }
     } else if (choice == 2) {
         displayPiles();
-        std::printf("\nQue pila deseas tomar? (1-%d): ", (int)piles.size());
-        int pileIdx = getPileSelection((int)piles.size()) - 1;
+        std::printf("\nQue pila deseas tomar? (1-%zu): ", numPiles);
+        int pileIdx = getPileSelection(static_cast<int>(numPiles)) - 1;
         if (handleTakePileAction(pileIdx)) {
-            std::printf("%s tomo la pila %d\n", current.getName().c_str(), pileIdx + 1);
+            std::printf("%s tomo la pila %d\n", current.getName(), pileIdx + 1);
             current.markPassed();
             playersPassedCount++;
         } else {
@@ -150,7 +240,7 @@ void Game::playerTurn() {
 }
 
 bool Game::handleDrawCardAction(int pileIndex) {
-    if (pileIndex < 0 || pileIndex >= (int)piles.size()) return false;
+    if (pileIndex < 0 || pileIndex >= static_cast<int>(numPiles)) return false;
     if (piles[static_cast<std::size_t>(pileIndex)].isFull()) {
         std::printf("La pila esta llena\n");
         return false;
@@ -170,13 +260,17 @@ bool Game::handleDrawCardAction(int pileIndex) {
 }
 
 bool Game::handleTakePileAction(int pileIndex) {
-    if (pileIndex < 0 || pileIndex >= (int)piles.size()) return false;
+    if (pileIndex < 0 || pileIndex >= static_cast<int>(numPiles)) return false;
     Pile &pile = piles[static_cast<std::size_t>(pileIndex)];
     Player &current = players[static_cast<std::size_t>(currentPlayerIdx)];
     if (pile.isEmpty()) { std::printf("La pila esta vacia\n"); return false; }
     if (pile.isTaken()) { std::printf("Esa pila ya fue tomada en esta ronda\n"); return false; }
-    for (const auto &c : pile.getCards()) { current.addCard(c); }
-    std::printf("%s recibio %d carta(s)\n", current.getName().c_str(), pile.size());
+    const Card* pileCards = pile.getCards();
+    std::size_t cardCount = pile.getCardCount();
+    for (std::size_t i = 0; i < cardCount; i++) {
+        current.addCard(pileCards[i]);
+    }
+    std::printf("%s recibio %d carta(s)\n", current.getName(), pile.size());
     pile.markTaken();
     return true;
 }
@@ -184,19 +278,23 @@ bool Game::handleTakePileAction(int pileIndex) {
 void Game::nextPlayer() {
     int attempts = 0;
     do {
-        currentPlayerIdx = (currentPlayerIdx + 1) % (int)players.size();
+        currentPlayerIdx = (currentPlayerIdx + 1) % static_cast<int>(numPlayers);
         attempts++;
-        if (attempts > (int)players.size()) break;
+        if (attempts > static_cast<int>(numPlayers)) break;
     } while (players[static_cast<std::size_t>(currentPlayerIdx)].hasPassedThisRound());
 }
 
 bool Game::allPlayersPassed() const {
-    return playersPassedCount >= (int)players.size();
+    return playersPassedCount >= static_cast<int>(numPlayers);
 }
 
 void Game::resetRound() {
-    for (auto &p : piles) { p.clear(); }
-    for (auto &pl : players) { pl.resetTurn(); }
+    for (std::size_t i = 0; i < numPiles; i++) {
+        piles[i].clear();
+    }
+    for (std::size_t i = 0; i < numPlayers; i++) {
+        players[i].resetTurn();
+    }
     playersPassedCount = 0;
     currentRound++;
     if (lastRoundTriggered) {
@@ -210,21 +308,21 @@ void Game::calculateScoresAndDeclareWinner() {
     std::printf("=======================================\n");
     std::printf("     CALCULANDO PUNTUACIONES\n");
     std::printf("=======================================\n\n");
-    for (auto &p : players) {
-        p.calculateScore();
-        p.printScoreBreakdown();
+    for (std::size_t i = 0; i < numPlayers; i++) {
+        players[i].calculateScore();
+        players[i].printScoreBreakdown();
         waitForEnter();
     }
     displayFinalResults();
     // Ganador
     int bestIdx = 0;
-    for (int i = 1; i < (int)players.size(); i++) {
+    for (int i = 1; i < static_cast<int>(numPlayers); i++) {
         if (players[static_cast<std::size_t>(i)].getScore() > players[static_cast<std::size_t>(bestIdx)].getScore()) {
             bestIdx = i;
         }
     }
     std::printf("\n=======================================\n\n");
-    std::printf("   GANADOR: %s\n", players[static_cast<std::size_t>(bestIdx)].getName().c_str());
+    std::printf("   GANADOR: %s\n", players[static_cast<std::size_t>(bestIdx)].getName());
     std::printf("   Puntuacion: %d\n", players[static_cast<std::size_t>(bestIdx)].getScore());
     std::printf("\n=======================================\n");
 }
@@ -251,9 +349,9 @@ void Game::displayGameState() const {
     displayPiles();
     std::printf("\nESTADO DE JUGADORES:\n");
     std::printf("-----------------------------------------\n");
-    for (std::size_t i = 0; i < players.size(); i++) {
+    for (std::size_t i = 0; i < numPlayers; i++) {
         const Player &p = players[i];
-        std::printf("  %s: %d cartas", p.getName().c_str(), p.cardCount());
+        std::printf("  %s: %d cartas", p.getName(), p.cardCount());
         if (p.hasPassedThisRound()) std::printf(" [PASO]");
         if ((int)i == currentPlayerIdx) std::printf(" <- TURNO ACTUAL");
         std::printf("\n");
@@ -264,8 +362,8 @@ void Game::displayGameState() const {
 void Game::displayPiles() const {
     std::printf("\nPILAS DISPONIBLES:\n");
     std::printf("-----------------------------------------\n");
-    for (int i = 0; i < (int)piles.size(); i++) {
-        piles[static_cast<std::size_t>(i)].print(i + 1);
+    for (std::size_t i = 0; i < numPiles; i++) {
+        piles[i].print(static_cast<int>(i + 1));
     }
     std::printf("-----------------------------------------\n");
 }
@@ -273,11 +371,7 @@ void Game::displayPiles() const {
 void Game::displayWelcomeMessage() const {
     std::printf("\n");
     std::printf("=======================================\n");
-    std::printf("\n");
-    std::printf("        COLORETTO\n");
-    std::printf("\n");
-    std::printf("   Implementacion en C++\n");
-    std::printf("\n");
+    std::printf("         CONFIGURACION DEL JUEGO       \n");
     std::printf("=======================================\n");
     std::printf("\n");
 }
@@ -287,17 +381,31 @@ void Game::displayFinalResults() const {
     std::printf("=======================================\n");
     std::printf("        RESULTADOS FINALES\n");
     std::printf("=======================================\n\n");
-    // Ordenar copia de índices por score
-    std::vector<int> idx(players.size());
-    for (int i = 0; i < (int)players.size(); i++) idx[static_cast<std::size_t>(i)] = i;
-    std::sort(idx.begin(), idx.end(), [&](int a, int b){
-        return players[static_cast<std::size_t>(a)].getScore() > players[static_cast<std::size_t>(b)].getScore();
-    });
-    for (int i = 0; i < (int)idx.size(); i++) {
-        std::printf("%d. ", i + 1);
-        players[static_cast<std::size_t>(idx[static_cast<std::size_t>(i)])].printSummary();
+    // Ordenar copia de índices por score usando malloc para array dinámico
+    int* idx = static_cast<int*>(std::malloc(numPlayers * sizeof(int)));
+    if (idx == nullptr) {
+        std::fprintf(stderr, "Error: No se pudo asignar memoria para índices\n");
+        return;
+    }
+    for (std::size_t i = 0; i < numPlayers; i++) {
+        idx[i] = static_cast<int>(i);
+    }
+    // Ordenamiento simple (bubble sort) para mantener uso de memoria dinámica
+    for (std::size_t i = 0; i < numPlayers - 1; i++) {
+        for (std::size_t j = 0; j < numPlayers - i - 1; j++) {
+            if (players[idx[j]].getScore() < players[idx[j + 1]].getScore()) {
+                int temp = idx[j];
+                idx[j] = idx[j + 1];
+                idx[j + 1] = temp;
+            }
+        }
+    }
+    for (std::size_t i = 0; i < numPlayers; i++) {
+        std::printf("%zu. ", i + 1);
+        players[idx[i]].printSummary();
     }
     std::printf("\n");
+    std::free(idx);  // Liberar memoria
 }
 
 int Game::getPlayerChoice() const {

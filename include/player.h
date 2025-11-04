@@ -7,18 +7,19 @@
 #define TOP_COLORS_COUNT 3
 
 // ============================================
-// Clase Player (RAII)
+// Clase Player (con memoria dinámica explícita)
 // ============================================
 class Player {
 public:
-    Player(const std::string &name, int id);
-
+    Player(const char* name, int id);  // Cambiado de std::string a const char*
+    ~Player();  // Destructor para liberar memoria
+    
     void addCard(const Card &card);
     int countByColor(Color color) const;
     void calculateScore();
     int getScore() const { return score; }
-    const std::string& getName() const { return name; }
-    int cardCount() const { return static_cast<int>(cards.size()); }
+    const char* getName() const { return name; }  // Cambiado de std::string& a const char*
+    int cardCount() const { return static_cast<int>(cardCount_var); }
     void printCollection() const;
     void printSummary() const;
     void printScoreBreakdown() const;
@@ -29,13 +30,16 @@ public:
 private:
     static int positiveScore(int cardCount);
     static int negativeScore(int cardCount);
-    static void findTop3Colors(const std::vector<int> &counts, int topIdx[TOP_COLORS_COUNT]);
+    static void findTop3Colors(const int* counts, int topIdx[TOP_COLORS_COUNT], int numColors);
     static bool isInTop3(int colorIndex, const int topIdx[TOP_COLORS_COUNT]);
+    void resizeCardCollection();  // Redimensiona el array de cartas
 
 private:
-    std::string name;
+    char* name;         // Nombre del jugador (malloc)
     int id;
-    std::vector<Card> cards;
+    Card* cards;        // Array dinámico de cartas (malloc/new)
+    std::size_t cardCount_var;  // Número actual de cartas
+    std::size_t cardCapacity;   // Capacidad del array de cartas
     int score;
     bool hasPassed;
 };

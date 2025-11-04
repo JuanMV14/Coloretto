@@ -6,11 +6,12 @@
 #include "deck.h"
 
 // ============================================
-// Clase Game (RAII)
+// Clase Game (con memoria dinámica explícita)
 // ============================================
 class Game {
 public:
     Game();
+    ~Game();  // Destructor para liberar memoria
 
     void assignInitialColors();
     void prepare();
@@ -38,9 +39,11 @@ private:
     void clearInputBuffer() const;
 
 private:
-    std::vector<Player> players;
+    Player* players;        // Array dinámico de jugadores (new/malloc)
+    std::size_t numPlayers; // Número de jugadores
     Deck deck;
-    std::vector<Pile> piles;
+    Pile* piles;            // Array dinámico de pilas (new/malloc)
+    std::size_t numPiles;   // Número de pilas
     int currentPlayerIdx;
     int currentRound;
     bool lastRoundTriggered;
